@@ -1,29 +1,25 @@
 const relays = [
-  "wss://wss://relay-k12.edufeed.org/",
-  "wss://relay-hed.edufeed.org",
-  "wss://relay.snort.social",
-  "wss://relay.sc24.steffen-roertgen.de"
+  "wss://relay.nostr.band",
+  "wss://relay.damus.io",
+  "wss://relay.snort.social"
 ];
 
 const eventKind = 30142;
 const eventList = document.getElementById("event-list");
-
 const seenEventIds = new Set();
-wss://relay-k12.edufeed.org/
-async function fetchEvents() {
-  for (const url of relays) {
-    const relay = window.NostrTools.relayInit(url);
 
-    relay.on('connect', () => {
-      console.log(`✅ Verbunden mit ${url}`);
-    });
+for (const url of relays) {
+  const relay = window.NostrTools.relayInit(url);
 
-    relay.on('error', () => {
-      console.warn(`❌ Fehler beim Verbinden mit ${url}`);
-    });
+  relay.on('connect', () => {
+    console.log(`✅ Verbunden mit ${url}`);
+  });
 
-    await relay.connect();
+  relay.on('error', () => {
+    console.warn(`❌ Fehler beim Verbinden mit ${url}`);
+  });
 
+  relay.connect().then(() => {
     const sub = relay.sub([
       {
         kinds: [eventKind]
@@ -48,7 +44,5 @@ async function fetchEvents() {
       console.log(`🔚 EOSE von ${url}`);
       sub.unsub();
     });
-  }
+  });
 }
-
-fetchEvents();
