@@ -1,0 +1,18 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 2rem;
+  background: #f7f7f7;
+  color: #333;
+}
+
+#events {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+.event {
+  border-bottom: 1px solid #ddd;
+  padding: 0.5rem 0;
+}
