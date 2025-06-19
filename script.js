@@ -1,6 +1,8 @@
+// KEIN import hier oben! Das ist wichtig!
+
 const relays = [
   "wss://relay.nostr.band",
-  "wss://relay.damus.io",
+  "wss://relay-hed.edufeed.org",
   "wss://relay.snort.social"
 ];
 
