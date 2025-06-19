@@ -1,6 +1,6 @@
 import { relayInit } from "https://esm.sh/nostr-tools";
 
-const relay = relayInit("wss://relay.damus.io");
+const relay = relayInit("wss://relay.sc24.steffen-roertgen.de");
 await relay.connect();
 
 const sub = relay.sub([
