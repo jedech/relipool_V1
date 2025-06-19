@@ -1,24 +1,49 @@
-import { relayInit } from "https://esm.sh/nostr-tools";
+import { relayInit, getEventHash, verifySignature, nip19 } from 'nostr-tools';
 
-const relay = relayInit("wss://wss://relay-hed.edufeed.org/");
-await relay.connect();
+const relays = [
+  "wss://relay.damus.io",
+  "wss://nostr.fmt.wiz.biz",
+  "wss://relay.snort.social"
+];
 
-const sub = relay.sub([
-  {
-    kinds: [30142],
-    limit: 10, // Anzahl begrenzen
-  },
-]);
+const eventKind = 30142;
+const pubkey = ""; // Optional: nur Events eines bestimmten Users laden
 
-const eventsDiv = document.getElementById("events");
-eventsDiv.innerHTML = "";
+async function fetchEvent30142FromRelays() {
+  for (const relayUrl of relays) {
+    try {
+      const relay = relayInit(relayUrl);
 
-sub.on("event", (event) => {
-  const div = document.createElement("div");
-  div.className = "event";
-  div.innerHTML = `
-    <strong>PubKey:</strong> ${event.pubkey.slice(0, 16)}…<br />
-    <strong>Inhalt:</strong> <pre>${event.content}</pre>
-  `;
-  eventsDiv.appendChild(div);
-});
+      relay.on('connect', () => {
+        console.log(`✅ Verbunden mit ${relayUrl}`);
+      });
+
+      relay.on('error', () => {
+        console.warn(`❌ Fehler beim Verbinden mit ${relayUrl}`);
+      });
+
+      await relay.connect();
+
+      const sub = relay.sub([
+        {
+          kinds: [eventKind],
+          ...(pubkey ? { authors: [pubkey] } : {})
+        }
+      ]);
+
+      sub.on('event', event => {
+        console.log(`📥 Event von ${relayUrl}:`, event);
+      });
+
+      sub.on('eose', () => {
+        console.log(`🔚 EOSE von ${relayUrl}`);
+        sub.unsub();
+      });
+
+    } catch (err) {
+      console.error(`💥 Fehler bei ${relayUrl}:`, err);
+    }
+  }
+}
+
+fetchEvent30142FromRelays();
