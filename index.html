@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Nostr Bookmarks (30142)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Nostr Test</title>
 </head>
 <body>
-  <h1>📚 Nostr Bookmarks (30142)</h1>
-  <div id="event-list">Lade Events…</div>
-
-  <!-- ✅ nostr-tools aus CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/nostr-tools@1.13.0/nostr.bundle.js"></script>
-  
-  <!-- ✅ dein Script -->
-  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/nostr-tools@1.13.0/nostr.bundle.js"></script>
+  <script>
+    if (window.NostrTools) {
+      alert("nostr-tools erfolgreich geladen!");
+    } else {
+      alert("nostr-tools konnte nicht geladen werden.");
+    }
+  </script>
 </body>
 </html>
+
 
