@@ -1,11 +1,49 @@
 <!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <title>Nostr Test</title>
-</head>
+<html>
 <body>
-   <h1>Anzeige von nostr Events</h1>
+<h1>Bildungsmedien</h1>
+<div id="content"></div>
+
+<script>
+const relay = "wss://relay.damus.io"; // Beispiel-Relay
+const ws = new WebSocket(relay);
+
+ws.onopen = () => {
+  const subId = "my-sub";
+
+  const filter = {
+    kinds: [30023],   // NIP-23 Longform
+    limit: 5
+  };
+
+  ws.send(JSON.stringify(["REQ", subId, filter]));
+};
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+
+  if (data[0] === "EVENT") {
+    const ev = data[2];
+
+    const div = document.getElementById("content");
+    const el = document.createElement("div");
+
+    el.innerHTML = `
+      <h2>${getTag(ev, "title") || "Ohne Titel"}</h2>
+      <p>${ev.content}</p>
+      <hr>
+    `;
+
+    div.appendChild(el);
+  }
+};
+
+function getTag(ev, tagName) {
+  const tag = ev.tags.find(t => t[0] === tagName);
+  return tag ? tag[1] : null;
+}
+</script>
+
 </body>
 </html>
 
