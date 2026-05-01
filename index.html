@@ -1,15 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-<meta charset="UTF-8">
-<style>
-  body { font-family: Arial; max-width: 800px; margin: auto; }
-  .card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
-  img { max-width: 100%; }
-  .meta { color: #666; font-size: 0.9em; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bildungsmedien</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .group {
+      margin-bottom: 30px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+    .group-header {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 10px;
+      padding: 5px 0;
+      border-bottom: 1px dashed #ccc;
+      display: inline-block;
+      width: 100%;
+    }
+    .group-header a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .group-header a:hover {
+      text-decoration: underline;
+    }
+    .kind-header {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #3498db;
+      margin-top: 15px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 3px;
+    }
+    .card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      background-color: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .meta {
+      color: #666;
+      font-size: 0.9em;
+      margin-bottom: 8px;
+    }
+    .meta .kind {
+      font-weight: bold;
+      color: #3498db;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      margin-top: 8px;
+      border: 1px solid #eee;
+    }
+    .empty {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+      padding: 20px;
+    }
+  </style>
 </head>
-
 <body>
 <h1>Bildungsmedien</h1>
 <div id="content"></div>
@@ -17,27 +91,34 @@
 <script type="module">
 import { nip19 } from "https://esm.sh/nostr-tools";
 
+// === Konfiguration ===
 const authorsNpub = [
-  "1nvw4g3twxcflygxszeemmgg22q6ue8fkhua22wpwnyfq8mjanm9s6vj992"
-  "1r30l8j4vmppvq8w23umcyvd3vct4zmfpfkn4c7h2h057rmlfcrmq9xt9ma"
+  "1nvw4g3twxcflygxszeemmgg22q6ue8fkhua22wpwnyfq8mjanm9s6vj992",
+  "1r30l8j4vmppvq8w23umcyvd3vct4zmfpfkn4c7h2h057rmlfcrmq9xt9ma",
   "1arwcpnuguyrnp89mhx2l4erj2a8hjhe5eruy8nm04k2wdyrzqxksf0mu63"
 ];
-  
+
 const relays = [
   "wss://amb-relay.edufeed.org",
   "wss://relay.edufeed.org",
-  "wss://relay-rpi.edufeed.org",
+  "wss://relay-rpi.edufeed.org"
 ];
 
+// === Zustand ===
 const seenEvents = new Set();
-let events = [];
+const events = [];
 
-  function toHex(npub) {
+// === Hilfsfunktionen ===
+function toHex(npub) {
   try {
-    const { data } = nip19.decode(npub);
-    return data;
+    const decoded = nip19.decode(npub);
+    if (decoded.type !== 'npub') {
+      console.warn("Nicht ein npub:", npub, "Typ:", decoded.type);
+      return null;
+    }
+    return decoded.data;
   } catch (e) {
-    console.error("Ungültiger npub:", npub);
+    console.error("Ungültiger npub:", npub, e);
     return null;
   }
 }
@@ -46,21 +127,131 @@ const authorsHex = authorsNpub
   .map(toHex)
   .filter(a => a !== null);
 
-  console.log("authorsHex:", authorsHex);
+console.log("authorsHex:", authorsHex);
 
+// === Filter: beide Event-Typen ===
 const filter = {
-  kinds: [30023],
+  kinds: [30023, 30142], // ✅ beide Typen
   authors: authorsHex,
   limit: 20
 };
 
+// === Render-Funktion mit Gruppierung nach npub und Unterteilung nach kind ===
+let renderTimeout;
+
+function render() {
+  clearTimeout(renderTimeout);
+  renderTimeout = setTimeout(() => {
+    const div = document.getElementById("content");
+    div.innerHTML = "";
+
+    // Gruppierung: pubkey → [events]
+    const groupedEvents = new Map();
+
+    events.forEach(ev => {
+      const pubkey = ev.pubkey;
+      if (!groupedEvents.has(pubkey)) {
+        groupedEvents.set(pubkey, []);
+      }
+      groupedEvents.get(pubkey).push(ev);
+    });
+
+    // Sortiere Gruppen nach pubkey (npub)
+    const sortedGroups = Array.from(groupedEvents.entries()).sort(([a], [b]) => a.localeCompare(b));
+
+    // Wenn keine Events vorhanden
+    if (sortedGroups.length === 0) {
+      div.innerHTML = '<div class="empty">Keine Medien gefunden.</div>';
+      return;
+    }
+
+    // Jede Gruppe rendern
+    sortedGroups.forEach(([pubkey, groupEvents]) => {
+      const author = toNpub(pubkey);
+      const groupEl = document.createElement("div");
+      groupEl.className = "group";
+
+      // Überschrift mit npub
+      const headerEl = document.createElement("div");
+      headerEl.className = "group-header";
+      headerEl.innerHTML = `
+        <a href="https://njump.me/${author}" target="_blank">${author}</a>
+      `;
+      groupEl.appendChild(headerEl);
+
+      // Sortiere Events innerhalb der Gruppe nach `kind`
+      const sortedEvents = groupEvents.sort((a, b) => a.kind - b.kind);
+
+      // Gruppierung nach `kind` innerhalb der Gruppe
+      const kindGroups = new Map();
+      sortedEvents.forEach(ev => {
+        if (!kindGroups.has(ev.kind)) {
+          kindGroups.set(ev.kind, []);
+        }
+        kindGroups.get(ev.kind).push(ev);
+      });
+
+      // Jede Art von Event rendern
+      const kindOrder = [30023, 30142]; // Reihenfolge: 30023 zuerst
+      kindOrder.forEach(kind => {
+        if (!kindGroups.has(kind)) return;
+
+        const kindEvents = kindGroups.get(kind);
+        const kindHeader = document.createElement("div");
+        kindHeader.className = "kind-header";
+        kindHeader.textContent = `Typ: ${kind}`;
+        groupEl.appendChild(kindHeader);
+
+        kindEvents.forEach(ev => {
+          const title = String(getTag(ev, "title") || "Ohne Titel");
+          const summary = getTag(ev, "summary") || ev.content.slice(0, 200);
+          const image = getTag(ev, "image");
+
+          const cardEl = document.createElement("div");
+          cardEl.className = "card";
+
+          cardEl.innerHTML = `
+            <h2>${title}</h2>
+            <div class="meta">
+              <span class="kind">Typ: ${ev.kind}</span> • 
+              Veröffentlicht: ${new Date(ev.created_at * 1000).toLocaleString()}
+            </div>
+            ${image ? `<img src="${image}" alt="Bild">` : ""}
+            <p>${summary}</p>
+          `;
+
+          groupEl.appendChild(cardEl);
+        });
+      });
+
+      div.appendChild(groupEl);
+    });
+  }, 100);
+}
+
+function getTag(ev, tagName) {
+  const tag = ev.tags.find(t => t[0] === tagName);
+  return tag ? tag[1] : null;
+}
+
+function toNpub(pubkey) {
+  try {
+    return nip19.npubEncode(pubkey);
+  } catch (e) {
+    return pubkey;
+  }
+}
+
+// === WebSocket-Verbindungen ===
 relays.forEach(url => {
+  const subId = `my-sub-${url}`; // eindeutige ID für REQ
   const ws = new WebSocket(url);
 
   ws.onopen = () => {
+    console.log("Verbunden mit Relay:", url);
     ws.send(JSON.stringify([
       "REQ",
-      url,
+      subId,
       filter
     ]));
   };
@@ -71,66 +262,29 @@ relays.forEach(url => {
     if (data[0] === "EVENT") {
       const ev = data[2];
 
-      // ✅ clientseitiger Filter
-      if (ev.kind !== 30023) return;
+      // Filter: nur die gewünschten Kinds
+      if (![30023, 30142].includes(ev.kind)) return;
 
-      // ✅ Filter auf die richtigen npubs
+      // Filter: nur von autorisierten npubs
       if (!authorsHex.includes(ev.pubkey)) return;
 
-      // ✅ Duplikate vermeiden
+      // Duplikat-Prüfung
       if (seenEvents.has(ev.id)) return;
       seenEvents.add(ev.id);
 
       events.push(ev);
-      render();
+      render(); // Aktualisierung
     }
   };
+
+  ws.onclose = () => {
+    console.log("Verbindung zu Relay geschlossen:", url);
+  };
+
+  ws.onerror = (err) => {
+    console.error("WebSocket-Fehler:", url, err);
+  };
 });
-
-function render() {
-  const div = document.getElementById("content");
-  div.innerHTML = "";
-
-  // ✅ nach Autor sortieren (pubkey)
-  events.sort((a, b) => a.pubkey.localeCompare(b.pubkey));
-
-  events.forEach(ev => {
-    const title = getTag(ev, "title") || "Ohne Titel";
-    const summary = getTag(ev, "summary") || ev.content.slice(0, 200);
-    const image = getTag(ev, "image");
-    const author = toNpub(ev.pubkey);
-
-    const el = document.createElement("div");
-    el.className = "card";
-
-    el.innerHTML = `
-      <h2>${title}</h2>
-      <div class="meta">
-           Autor: <a href="https://njump.me/${author}" target="_blank">${author}</a>
-      </div>
-      ${image ? `<img src="${image}">` : ""}
-      <p>${summary}</p>
-    `;
-
-    div.appendChild(el);
-  });
-}
-
-function getTag(ev, tagName) {
-  const tag = ev.tags.find(t => t[0] === tagName);
-  return tag ? tag[1] : null;
-}
-
-  function toNpub(pubkey) {
-  try {
-    return nip19.npubEncode(pubkey);
-  } catch (e) {
-    return pubkey; // fallback
-  }
-}
-
-  
 </script>
-
 </body>
 </html>
