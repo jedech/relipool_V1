@@ -48,7 +48,7 @@ const authorsHex = authorsNpub
   console.log("authorsHex:", authorsHex);
 
 const filter = {
-  kinds: [30142],
+  kinds: [30023],
   authors: authorsHex,
   limit: 20
 };
@@ -71,7 +71,7 @@ relays.forEach(url => {
       const ev = data[2];
 
       // ✅ clientseitiger Filter
-      if (ev.kind !== 30142) return;
+      if (ev.kind !== 30023) return;
 
       // ✅ Filter auf die richtigen npubs
       if (!authorsHex.includes(ev.pubkey)) return;
