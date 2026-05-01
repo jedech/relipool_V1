@@ -1,5 +1,15 @@
 <!DOCTYPE html>
 <html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial; max-width: 800px; margin: auto; }
+  .card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+  img { max-width: 100%; }
+  .meta { color: #666; font-size: 0.9em; }
+</style>
+</head>
+
 <body>
 <h1>Bildungsmedien</h1>
 <div id="content"></div>
@@ -7,26 +17,24 @@
 <script>
 const relays = [
   "wss://amb-relay.edufeed.org",
-  "wss://relay-rpi.edufeed.org",
-  "wss://relay.damus.io"
+  "wss://relay.edufeed.org"
 ];
 
-const seenEvents = new Set(); // verhindert Duplikate
+const seenEvents = new Set();
+let events = [];
 
 const filter = {
   kinds: [30023],
-  limit: 15
+  limit: 20
 };
 
 relays.forEach(url => {
   const ws = new WebSocket(url);
 
   ws.onopen = () => {
-    console.log("Verbunden mit", url);
-
     ws.send(JSON.stringify([
       "REQ",
-      url,   // subId (einfach Relay-URL nehmen)
+      url,
       filter
     ]));
   };
@@ -37,35 +45,44 @@ relays.forEach(url => {
     if (data[0] === "EVENT") {
       const ev = data[2];
 
-      // ❗ Duplikate vermeiden
+      // ✅ clientseitiger Filter
+      if (ev.kind !== 30023) return;
+
+      // ✅ Duplikate vermeiden
       if (seenEvents.has(ev.id)) return;
       seenEvents.add(ev.id);
 
-      renderEvent(ev);
+      events.push(ev);
+      render();
     }
-
-    if (data[0] === "EOSE") {
-      console.log("Fertig:", url);
-      ws.close();
-    }
-  };
-
-  ws.onerror = (e) => {
-    console.log("Fehler bei", url);
   };
 });
 
-function renderEvent(ev) {
+function render() {
   const div = document.getElementById("content");
-  const el = document.createElement("div");
+  div.innerHTML = "";
 
-  el.innerHTML = `
-    <h2>${getTag(ev, "title") || "Ohne Titel"}</h2>
-    <p>${ev.content}</p>
-    <hr>
-  `;
+  // ✅ nach Autor sortieren (pubkey)
+  events.sort((a, b) => a.pubkey.localeCompare(b.pubkey));
 
-  div.appendChild(el);
+  events.forEach(ev => {
+    const title = getTag(ev, "title") || "Ohne Titel";
+    const summary = getTag(ev, "summary") || ev.content.slice(0, 200);
+    const image = getTag(ev, "image");
+    const author = ev.pubkey;
+
+    const el = document.createElement("div");
+    el.className = "card";
+
+    el.innerHTML = `
+      <h2>${title}</h2>
+      <div class="meta">Autor: ${author}</div>
+      ${image ? `<img src="${image}">` : ""}
+      <p>${summary}</p>
+    `;
+
+    div.appendChild(el);
+  });
 }
 
 function getTag(ev, tagName) {
