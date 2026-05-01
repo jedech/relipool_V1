@@ -183,6 +183,29 @@
       margin-top: 12px;
       border: 1px solid #eee;
     }
+    .modal-body h1, .modal-body h2, .modal-body h3 {
+      color: #2c3e50;
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+    }
+    .modal-body ul, .modal-body ol {
+      margin-bottom: 12px;
+      padding-left: 20px;
+    }
+    .modal-body blockquote {
+      border-left: 4px solid #3498db;
+      margin: 12px 0;
+      padding: 8px 12px;
+      background-color: #f0f8ff;
+      color: #333;
+    }
+    .modal-body code {
+      background-color: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
     .modal-footer {
       margin-top: 20px;
       text-align: right;
@@ -211,8 +234,10 @@
   </div>
 </div>
 
+<!-- Lade marked.js für Markdown-Rendering -->
 <script type="module">
 import { nip19 } from "https://esm.sh/nostr-tools";
+import marked from "https://esm.sh/marked@10.0.0";
 
 // === Konfiguration ===
 const authorsNpub = [
@@ -273,12 +298,9 @@ const closeModalBtn = document.getElementById("close-modal");
 // === Öffnen des Modals ===
 function openModal(ev) {
   modalTitle.textContent = getTag(ev, "title") || "Ohne Titel";
-  modalBody.innerHTML = ev.content || "<p>Kein Inhalt verfügbar.</p>";
 
-  // Sicherstellen, dass HTML korrekt gerendert wird
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(ev.content, "text/html");
-  modalBody.innerHTML = doc.body.innerHTML;
+  // ✅ Markdown-Rendering mit marked.js
+  modalBody.innerHTML = marked.parse(ev.content || "Kein Inhalt verfügbar.");
 
   // Footer: Typ und Datum
   modalFooter.innerHTML = `
@@ -331,7 +353,7 @@ function render() {
       }
       groupedEvents.get(pubkey).push(ev);
     });
-    
+
     const sortedGroups = Array.from(groupedEvents.entries()).sort(([a], [b]) => a.localeCompare(b));
 
     if (sortedGroups.length === 0) {
@@ -394,7 +416,6 @@ function render() {
             </div>
           `;
 
-          // Klick-Event für den Button
           const readMoreBtn = cardEl.querySelector(".read-more-btn");
           readMoreBtn.addEventListener("click", () => {
             openModal(ev);
