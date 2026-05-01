@@ -16,6 +16,11 @@
 
 <script type="module">
 import { nip19 } from "https://esm.sh/nostr-tools";
+
+const authorsNpub = [
+  "npube8dd80cf88e107309cbbb995fae472574f795f34c8f843cf6fad94e6906201ad",
+  "npub9b1d54456e3613f220d01673bda10a5035cc9d36bf3aa5382e991203ee5d9ecb"
+];
   
 const relays = [
   "wss://amb-relay.edufeed.org",
@@ -28,6 +33,7 @@ let events = [];
 
 const filter = {
   kinds: [30142],
+  authors: authorsHex,
   limit: 20
 };
 
@@ -50,6 +56,9 @@ relays.forEach(url => {
 
       // ✅ clientseitiger Filter
       if (ev.kind !== 30142) return;
+
+      // ✅ Filter auf die richtigen npubs
+      if (!authorsHex.includes(ev.pubkey)) return;
 
       // ✅ Duplikate vermeiden
       if (seenEvents.has(ev.id)) return;
@@ -102,6 +111,21 @@ function getTag(ev, tagName) {
     return pubkey; // fallback
   }
 }
+
+function toHex(npub) {
+  try {
+    const { data } = nip19.decode(npub);
+    return data;
+  } catch (e) {
+    console.error("Ungültiger npub:", npub);
+    return null;
+  }
+}
+
+  const authorsHex = authorsNpub
+  .map(toHex)
+  .filter(a => a !== null);
+  
 </script>
 
 </body>
