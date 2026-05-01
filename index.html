@@ -6,9 +6,8 @@
 
 <script>
 const relay = [
-  "wss://relay-rpi.edufeed.org",
   "wss://relay.damus.io",
-  "wss://amb-relay.edufeed.org"
+  ];
 const ws = new WebSocket(relay);
 
 ws.onopen = () => {
