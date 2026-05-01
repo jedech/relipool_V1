@@ -14,7 +14,9 @@
 <h1>Bildungsmedien</h1>
 <div id="content"></div>
 
-<script>
+<script type="module">
+import { nip19 } from "https://esm.sh/nostr-tools";
+  
 const relays = [
   "wss://amb-relay.edufeed.org",
   "wss://relay.edufeed.org",
@@ -70,14 +72,16 @@ function render() {
     const title = getTag(ev, "title") || "Ohne Titel";
     const summary = getTag(ev, "summary") || ev.content.slice(0, 200);
     const image = getTag(ev, "image");
-    const author = ev.pubkey;
+    const author = toNpub(ev.pubkey);
 
     const el = document.createElement("div");
     el.className = "card";
 
     el.innerHTML = `
       <h2>${title}</h2>
-      <div class="meta">Autor: ${author}</div>
+      <div class="meta">
+           Autor: <a href="https://njump.me/${author}" target="_blank">${author}</a>
+      </div>
       ${image ? `<img src="${image}">` : ""}
       <p>${summary}</p>
     `;
@@ -89,6 +93,14 @@ function render() {
 function getTag(ev, tagName) {
   const tag = ev.tags.find(t => t[0] === tagName);
   return tag ? tag[1] : null;
+}
+
+  function toNpub(pubkey) {
+  try {
+    return nip19.npubEncode(pubkey);
+  } catch (e) {
+    return pubkey; // fallback
+  }
 }
 </script>
 
