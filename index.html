@@ -31,6 +31,22 @@ const relays = [
 const seenEvents = new Set();
 let events = [];
 
+  function toHex(npub) {
+  try {
+    const { data } = nip19.decode(npub);
+    return data;
+  } catch (e) {
+    console.error("Ungültiger npub:", npub);
+    return null;
+  }
+}
+
+const authorsHex = authorsNpub
+  .map(toHex)
+  .filter(a => a !== null);
+
+  console.log("authorsHex:", authorsHex);
+
 const filter = {
   kinds: [30142],
   authors: authorsHex,
@@ -112,19 +128,6 @@ function getTag(ev, tagName) {
   }
 }
 
-function toHex(npub) {
-  try {
-    const { data } = nip19.decode(npub);
-    return data;
-  } catch (e) {
-    console.error("Ungültiger npub:", npub);
-    return null;
-  }
-}
-
-  const authorsHex = authorsNpub
-  .map(toHex)
-  .filter(a => a !== null);
   
 </script>
 
