@@ -5,40 +5,68 @@
 <div id="content"></div>
 
 <script>
-const relay = [
-  "wss://relay.damus.io",
-  ];
-const ws = new WebSocket(relay);
+const relays = [
+  "wss://amb-relay.edufeed.org",
+  "wss://relay-rpi.edufeed.org",
+  "wss://relay.damus.io"
+];
 
-ws.onopen = () => {
-  const subId = "my-sub";
+const seenEvents = new Set(); // verhindert Duplikate
 
-  const filter = {
-    kinds: [1],   // NIP-23 Longform
-    limit: 5
+const filter = {
+  kinds: [30023],
+  limit: 15
+};
+
+relays.forEach(url => {
+  const ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    console.log("Verbunden mit", url);
+
+    ws.send(JSON.stringify([
+      "REQ",
+      url,   // subId (einfach Relay-URL nehmen)
+      filter
+    ]));
   };
 
-  ws.send(JSON.stringify(["REQ", subId, filter]));
-};
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
 
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
+    if (data[0] === "EVENT") {
+      const ev = data[2];
 
-  if (data[0] === "EVENT") {
-    const ev = data[2];
+      // ❗ Duplikate vermeiden
+      if (seenEvents.has(ev.id)) return;
+      seenEvents.add(ev.id);
 
-    const div = document.getElementById("content");
-    const el = document.createElement("div");
+      renderEvent(ev);
+    }
 
-    el.innerHTML = `
-      <h2>${getTag(ev, "title") || "Ohne Titel"}</h2>
-      <p>${ev.content}</p>
-      <hr>
-    `;
+    if (data[0] === "EOSE") {
+      console.log("Fertig:", url);
+      ws.close();
+    }
+  };
 
-    div.appendChild(el);
-  }
-};
+  ws.onerror = (e) => {
+    console.log("Fehler bei", url);
+  };
+});
+
+function renderEvent(ev) {
+  const div = document.getElementById("content");
+  const el = document.createElement("div");
+
+  el.innerHTML = `
+    <h2>${getTag(ev, "title") || "Ohne Titel"}</h2>
+    <p>${ev.content}</p>
+    <hr>
+  `;
+
+  div.appendChild(el);
+}
 
 function getTag(ev, tagName) {
   const tag = ev.tags.find(t => t[0] === tagName);
@@ -48,5 +76,3 @@ function getTag(ev, tagName) {
 
 </body>
 </html>
-
-
