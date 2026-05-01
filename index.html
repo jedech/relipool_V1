@@ -109,9 +109,16 @@ const seenEvents = new Set();
 const events = [];
 
 // === Hilfsfunktionen ===
+
 function toHex(npub) {
   try {
-    const decoded = nip19.decode(npub);
+    // Wenn npub ohne npub1 beginnt, füge es hinzu
+    let normalized = npub;
+    if (npub.startsWith('1nvw') || npub.startsWith('1r30') || npub.startsWith('1arw')) {
+      normalized = 'npub1' + npub;
+    }
+
+    const decoded = nip19.decode(normalized);
     if (decoded.type !== 'npub') {
       console.warn("Nicht ein npub:", npub, "Typ:", decoded.type);
       return null;
@@ -122,7 +129,7 @@ function toHex(npub) {
     return null;
   }
 }
-
+  
 const authorsHex = authorsNpub
   .map(toHex)
   .filter(a => a !== null);
