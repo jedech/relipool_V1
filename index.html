@@ -25,7 +25,7 @@ const seenEvents = new Set();
 let events = [];
 
 const filter = {
-  kinds: [30023],
+  kinds: [30142],
   limit: 20
 };
 
@@ -47,7 +47,7 @@ relays.forEach(url => {
       const ev = data[2];
 
       // ✅ clientseitiger Filter
-      if (ev.kind !== 30023) return;
+      if (ev.kind !== 30142) return;
 
       // ✅ Duplikate vermeiden
       if (seenEvents.has(ev.id)) return;
