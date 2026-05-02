@@ -176,13 +176,6 @@
     .modal-body p {
       margin-bottom: 12px;
     }
-    .modal-body img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 6px;
-      margin-top: 12px;
-      border: 1px solid #eee;
-    }
     .modal-body h1, .modal-body h2, .modal-body h3 {
       color: #2c3e50;
       margin-top: 1.5em;
@@ -257,6 +250,22 @@ const seenEvents = new Set();
 const events = [];
 
 // === Hilfsfunktionen ===
+function getTag(ev, tagName) {
+  const tag = ev.tags.find(t => t[0] === tagName);
+  return tag ? tag[1] : null;
+}
+
+// ✅ Neue Funktion: sucht zuerst title, dann name
+function getTitle(ev) {
+  let title = getTag(ev, "title");
+  if (title) return title;
+
+  title = getTag(ev, "name");
+  if (title) return title;
+
+  return "Ohne Titel";
+}
+
 function toHex(npub) {
   try {
     let normalized = npub;
@@ -295,21 +304,14 @@ const modalBody = document.getElementById("modal-body");
 const modalFooter = document.getElementById("modal-footer");
 const closeModalBtn = document.getElementById("close-modal");
 
-
-  
 // === Öffnen des Modals ===
 function openModal(ev) {
-  modalTitle.textContent = getTitel(ev) || "Ohne Titel";
-
-  // ✅ Markdown-Rendering mit marked.js
+  modalTitle.textContent = getTitle(ev) || "Ohne Titel";
   modalBody.innerHTML = marked.parse(ev.content || "Kein Inhalt verfügbar.");
-
-  // Footer: Typ und Datum
   modalFooter.innerHTML = `
     <span>Typ: ${ev.kind}</span> • 
     <span>Veröffentlicht: ${new Date(ev.created_at * 1000).toLocaleString()}</span>
   `;
-
   modal.classList.add("active");
   document.body.style.overflow = "hidden";
 }
@@ -344,7 +346,6 @@ function render() {
     const groupedEvents = new Map();
 
     events.forEach(ev => {
-      // Normalisiere den pubkey: füge npub1 hinzu, wenn fehlt
       let pubkey = ev.pubkey;
       if (pubkey.length === 64 && (pubkey.startsWith('1nvw') || pubkey.startsWith('1r30') || pubkey.startsWith('1arw'))) {
         pubkey = 'npub1' + pubkey;
@@ -396,7 +397,7 @@ function render() {
         groupEl.appendChild(kindHeader);
 
         kindEvents.forEach(ev => {
-          const title = String(getTitel(ev) || "Ohne Titel");
+          const title = String(getTitle(ev) || "Ohne Titel");
           const summary = getTag(ev, "summary") || ev.content.slice(0, 200);
           const image = getTag(ev, "image");
 
@@ -430,29 +431,6 @@ function render() {
       div.appendChild(groupEl);
     });
   }, 100);
-}
-
-
-// ✅ Erweiterung: Funktion, die mehrere Tags prüft
-function getTitle(ev) {
-  // Zuerst: title
-  let title = getTag(ev, "title");
-  if (title) return title;
-
-  // Dann: name (für kind 30142)
-  title = getTag(ev, "name");
-  if (title) return title;
-
-  // Fallback
-  return "Ohne Titel";
-}
-
-function toNpub(pubkey) {
-  try {
-    return nip19.npubEncode(pubkey);
-  } catch (e) {
-    return pubkey;
-  }
 }
 
 // === WebSocket-Verbindungen ===
