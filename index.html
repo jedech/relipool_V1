@@ -272,7 +272,10 @@ const closeModalBtn = document.getElementById("close-modal");
 
 // === Öffnen des Modals ===
 function openModal(ev) {
-  modalTitle.textContent = getTag(ev, "title") || "Ohne Titel";
+ modalTitle.textContent =
+  getTag(ev, "title") ||
+  getTag(ev, "name") ||
+  "Ohne Titel";
   modalBody.innerHTML = ev.content || "<p>Kein Inhalt verfügbar.</p>";
 
   // Sicherstellen, dass HTML korrekt gerendert wird
@@ -372,7 +375,11 @@ function render() {
         groupEl.appendChild(kindHeader);
 
         kindEvents.forEach(ev => {
-          const title = String(getTag(ev, "title") || "Ohne Titel");
+         const title = String(
+           getTag(ev, "title") ||
+           getTag(ev, "name") ||
+           "Ohne Titel"
+            );
           const summary = getTag(ev, "summary") || ev.content.slice(0, 200);
           const image = getTag(ev, "image");
 
