@@ -230,6 +230,7 @@ const relays = [
 // === Zustand ===
 const seenEvents = new Set();
 const events = [];
+const profiles = new Map();
 
 // === Hilfsfunktionen ===
 function toHex(npub) {
@@ -264,6 +265,11 @@ const filter = {
   kinds: [30023, 30142],
   authors: authorsHex,
   limit: 20
+};
+
+  const profileFilter = {
+  kinds: [0],
+  authors: authorsHex
 };
 
 // === Modal-Elemente ===
@@ -346,7 +352,11 @@ function render() {
     }
 
     sortedGroups.forEach(([pubkey, groupEvents]) => {
-      const author = toNpub(pubkey);
+      const profile = profiles.get(pubkey);
+      const author =
+          profile?.display_name ||
+          profile?.name ||
+          toNpub(pubkey);
       const groupEl = document.createElement("div");
       groupEl.className = "group";
 
@@ -446,6 +456,14 @@ relays.forEach(url => {
     ]));
   };
 
+    // 👇 NEU: Profil-Events
+  ws.send(JSON.stringify([
+    "REQ",
+    subId + "-profiles",
+    profileFilter
+  ]));
+};
+
   ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
@@ -453,6 +471,18 @@ relays.forEach(url => {
       const ev = data[2];
       console.log("EVENT TAGS:", ev.tags);
       console.log("TITLE TEST:", getTag(ev, "title"), getTag(ev, "name"));
+
+      
+  // 👇 Profil speichern
+  if (ev.kind === 0) {
+    try {
+      const profile = JSON.parse(ev.content);
+      profiles.set(ev.pubkey, profile);
+    } catch (e) {
+      console.warn("Profil konnte nicht gelesen werden");
+    }
+    return;
+  }
 
       if (![30023, 30142].includes(ev.kind)) return;
       if (!authorsHex.includes(ev.pubkey)) return;
