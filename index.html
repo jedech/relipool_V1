@@ -320,18 +320,13 @@ function render() {
     const groupedEvents = new Map();
 
     events.forEach(ev => {
-      // Normalisiere den pubkey: füge npub1 hinzu, wenn fehlt
-      let pubkey = ev.pubkey;
-      if (pubkey.length === 64 && (pubkey.startsWith('1nvw') || pubkey.startsWith('1r30') || pubkey.startsWith('1arw'))) {
-        pubkey = 'npub1' + pubkey;
-      }
-
+      const pubkey = ev.pubkey;
       if (!groupedEvents.has(pubkey)) {
         groupedEvents.set(pubkey, []);
       }
       groupedEvents.get(pubkey).push(ev);
     });
-    
+
     const sortedGroups = Array.from(groupedEvents.entries()).sort(([a], [b]) => a.localeCompare(b));
 
     if (sortedGroups.length === 0) {
