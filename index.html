@@ -1,94 +1,220 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bildungsmedien</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bildungsmedien</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .group {
+      margin-bottom: 30px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+    .group-header {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 10px;
+      padding: 5px 0;
+      border-bottom: 1px dashed #ccc;
+      display: inline-block;
+      width: 100%;
+    }
+    .group-header a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .group-header a:hover {
+      text-decoration: underline;
+    }
+    .kind-header {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #3498db;
+      margin-top: 15px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 3px;
+    }
+    .card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      background-color: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .card h2 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .meta {
+      color: #666;
+      font-size: 0.9em;
+      margin-bottom: 8px;
+    }
+    .meta .kind {
+      font-weight: bold;
+      color: #3498db;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      margin-top: 8px;
+      border: 1px solid #eee;
+    }
+    .empty {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+      padding: 20px;
+    }
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  max-width: 800px;
-  margin: auto;
-  padding: 20px;
-  background-color: #f9f9f9;
-  color: #333;
-}
+    /* Button: Ganzen Beitrag lesen */
+    .read-more-btn {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 0.9em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    .read-more-btn:hover {
+      background-color: #2980b9;
+    }
 
-h1 {
-  text-align: center;
-}
-
-.group {
-  margin-bottom: 30px;
-  border-bottom: 2px solid #eee;
-}
-
-.group-header {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.card {
-  border: 1px solid #ddd;
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 8px;
-  background-color: #fff;
-}
-
-.read-more-btn {
-  margin-top: 10px;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: none;
-  background: rgba(0,0,0,0.7);
-}
-
-.modal.active {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background: white;
-  padding: 20px;
-  max-width: 800px;
-  width: 90%;
-}
-</style>
+    /* Modal-Box */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+    }
+    .modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-content {
+      background-color: #fff;
+      max-width: 800px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 12px;
+      padding: 25px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border: 1px solid #ddd;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    .modal-title {
+      font-size: 1.5em;
+      color: #2c3e50;
+      margin: 0;
+    }
+    .close-btn {
+      font-size: 1.8em;
+      font-weight: bold;
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .close-btn:hover {
+      background: #f0f0f0;
+      color: #333;
+    }
+    .modal-body {
+      line-height: 1.6;
+      color: #333;
+    }
+    .modal-body p {
+      margin-bottom: 12px;
+    }
+    .modal-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      margin-top: 12px;
+      border: 1px solid #eee;
+    }
+    .modal-footer {
+      margin-top: 20px;
+      text-align: right;
+      color: #666;
+      font-size: 0.9em;
+    }
+  </style>
 </head>
-
 <body>
-
 <h1>Bildungsmedien</h1>
 <div id="content"></div>
 
-<!-- Modal -->
+<!-- Modal-Box -->
 <div id="modal" class="modal">
   <div class="modal-content">
-    <h2 id="modal-title"></h2>
-    <div id="modal-body"></div>
-    <button id="close-modal">Schließen</button>
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Titel</h2>
+      <button class="close-btn" id="close-modal">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Inhalt wird dynamisch gesetzt -->
+    </div>
+    <div class="modal-footer" id="modal-footer">
+      <!-- Datum und Typ -->
+    </div>
   </div>
 </div>
 
 <script type="module">
 import { nip19 } from "https://esm.sh/nostr-tools";
 
-/* =====================
-   KONFIGURATION
-===================== */
-
+// === Konfiguration ===
 const authorsNpub = [
   "npub1nvw4g3twxcflygxszeemmgg22q6ue8fkhua22wpwnyfq8mjanm9s6vj992",
   "npub1r30l8j4vmppvq8w23umcyvd3vct4zmfpfkn4c7h2h057rmlfcrmq9xt9ma",
@@ -101,136 +227,35 @@ const relays = [
   "wss://relay-rpi.edufeed.org"
 ];
 
-/* =====================
-   STATE
-===================== */
-
-const events = [];
+// === Zustand ===
 const seenEvents = new Set();
-const profiles = new Map();
+const events = [];
 
-/* =====================
-   HELFER
-===================== */
-
+// === Hilfsfunktionen ===
 function toHex(npub) {
   try {
-    const decoded = nip19.decode(npub);
-    return decoded.type === "npub" ? decoded.data : null;
-  } catch {
+    let normalized = npub;
+    if (npub.length === 64 && (npub.startsWith('1nvw') || npub.startsWith('1r30') || npub.startsWith('1arw'))) {
+      normalized = 'npub1' + npub;
+    }
+
+    const decoded = nip19.decode(normalized);
+    if (decoded.type !== 'npub') {
+      console.warn("Nicht ein npub:", npub, "Typ:", decoded.type);
+      return null;
+    }
+    return decoded.data;
+  } catch (e) {
+    console.error("Ungültiger npub:", npub, e);
     return null;
   }
 }
 
-function toNpub(hex) {
-  try {
-    return nip19.npubEncode(hex);
-  } catch {
-    return hex;
-  }
-}
+const authorsHex = authorsNpub
+  .map(toHex)
+  .filter(a => a !== null);
 
-function getTag(ev, name) {
-  const t = ev.tags.find(t => t[0] === name);
-  return t ? t[1] : null;
-}
-
-const authorsHex = authorsNpub.map(toHex).filter(Boolean);
-
-/* =====================
-   MODAL
-===================== */
-
-const modal = document.getElementById("modal");
-const modalTitle = document.getElementById("modal-title");
-const modalBody = document.getElementById("modal-body");
-
-function openModal(ev) {
-  modalTitle.textContent =
-    getTag(ev, "title") ||
-    getTag(ev, "name") ||
-    "Ohne Titel";
-
-  modalBody.textContent = ev.content;
-
-  modal.classList.add("active");
-}
-
-document.getElementById("close-modal").onclick = () => {
-  modal.classList.remove("active");
-};
-
-/* =====================
-   RENDER
-===================== */
-
-function render() {
-  const container = document.getElementById("content");
-  container.innerHTML = "";
-
-  const grouped = new Map();
-
-  events.forEach(ev => {
-    if (!grouped.has(ev.pubkey)) {
-      grouped.set(ev.pubkey, []);
-    }
-    grouped.get(ev.pubkey).push(ev);
-  });
-
-  grouped.forEach((list, pubkey) => {
-    const npub = toNpub(pubkey);
-    const profile = profiles.get(pubkey);
-
-    const name =
-      profile?.display_name ||
-      profile?.name ||
-      npub;
-
-    const groupEl = document.createElement("div");
-    groupEl.className = "group";
-
-    const header = document.createElement("div");
-    header.className = "group-header";
-    header.innerHTML = `
-      <a href="https://njump.me/${npub}" target="_blank">
-        ${name}
-      </a>
-    `;
-    groupEl.appendChild(header);
-
-    list.forEach(ev => {
-
-      console.log("TITLE TEST:",
-        getTag(ev, "title"),
-        getTag(ev, "name")
-      );
-
-      const title =
-        getTag(ev, "title") ||
-        getTag(ev, "name") ||
-        "Ohne Titel";
-
-      const card = document.createElement("div");
-      card.className = "card";
-
-      card.innerHTML = `
-        <h2>${title}</h2>
-        <p>${ev.content.slice(0, 150)}...</p>
-        <button class="read-more-btn">Ganzen Beitrag lesen</button>
-      `;
-
-      card.querySelector("button").onclick = () => openModal(ev);
-
-      groupEl.appendChild(card);
-    });
-
-    container.appendChild(groupEl);
-  });
-}
-
-/* =====================
-   WEBSOCKET
-===================== */
+console.log("authorsHex:", authorsHex);
 
 const filter = {
   kinds: [30023, 30142],
@@ -238,52 +263,210 @@ const filter = {
   limit: 20
 };
 
-const profileFilter = {
-  kinds: [0],
-  authors: authorsHex
-};
+// === Modal-Elemente ===
+const modal = document.getElementById("modal");
+const modalTitle = document.getElementById("modal-title");
+const modalBody = document.getElementById("modal-body");
+const modalFooter = document.getElementById("modal-footer");
+const closeModalBtn = document.getElementById("close-modal");
 
-relays.forEach(url => {
+// === Öffnen des Modals ===
+function openModal(ev) {
+ modalTitle.textContent =
+  getTag(ev, "title") ||
+  getTag(ev, "name") ||
+  "Ohne Titel";
+  modalBody.innerHTML = ev.content || "<p>Kein Inhalt verfügbar.</p>";
 
-  const ws = new WebSocket(url);
+  // Sicherstellen, dass HTML korrekt gerendert wird
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(ev.content, "text/html");
+  modalBody.innerHTML = doc.body.innerHTML;
 
-  ws.onopen = () => {
-    console.log("Relay verbunden:", url);
+  // Footer: Typ und Datum
+  modalFooter.innerHTML = `
+    <span>Typ: ${ev.kind}</span> • 
+    <span>Veröffentlicht: ${new Date(ev.created_at * 1000).toLocaleString()}</span>
+  `;
 
-    ws.send(JSON.stringify(["REQ", "events", filter]));
-    ws.send(JSON.stringify(["REQ", "profiles", profileFilter]));
-  };
+  modal.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
 
-  ws.onmessage = (msg) => {
-    const data = JSON.parse(msg.data);
+// === Schließen des Modals ===
+function closeModal() {
+  modal.classList.remove("active");
+  document.body.style.overflow = "";
+}
 
-    if (data[0] !== "EVENT") return;
+// === Event-Listener für Modal ===
+closeModalBtn.addEventListener("click", closeModal);
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) closeModal();
+});
 
-    const ev = data[2];
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modal.classList.contains("active")) {
+    closeModal();
+  }
+});
 
-    /* === PROFILE === */
-    if (ev.kind === 0) {
-      try {
-        profiles.set(ev.pubkey, JSON.parse(ev.content));
-        render();
-      } catch {}
+// === Render-Funktion mit Gruppierung und anklickbaren Events ===
+let renderTimeout;
+
+function render() {
+  clearTimeout(renderTimeout);
+  renderTimeout = setTimeout(() => {
+    const div = document.getElementById("content");
+    div.innerHTML = "";
+
+    const groupedEvents = new Map();
+
+    events.forEach(ev => {
+      // Normalisiere den pubkey: füge npub1 hinzu, wenn fehlt
+      let pubkey = ev.pubkey;
+      if (pubkey.length === 64 && (pubkey.startsWith('1nvw') || pubkey.startsWith('1r30') || pubkey.startsWith('1arw'))) {
+        pubkey = 'npub1' + pubkey;
+      }
+
+      if (!groupedEvents.has(pubkey)) {
+        groupedEvents.set(pubkey, []);
+      }
+      groupedEvents.get(pubkey).push(ev);
+    });
+    
+    const sortedGroups = Array.from(groupedEvents.entries()).sort(([a], [b]) => a.localeCompare(b));
+
+    if (sortedGroups.length === 0) {
+      div.innerHTML = '<div class="empty">Keine Medien gefunden.</div>';
       return;
     }
 
-    /* === EVENTS === */
-    if (![30023, 30142].includes(ev.kind)) return;
-    if (!authorsHex.includes(ev.pubkey)) return;
-    if (seenEvents.has(ev.id)) return;
+    sortedGroups.forEach(([pubkey, groupEvents]) => {
+      const author = toNpub(pubkey);
+      const groupEl = document.createElement("div");
+      groupEl.className = "group";
 
-    seenEvents.add(ev.id);
-    events.push(ev);
+      const headerEl = document.createElement("div");
+      headerEl.className = "group-header";
+      headerEl.innerHTML = `
+        <a href="https://njump.me/${author}" target="_blank">${author}</a>
+      `;
+      groupEl.appendChild(headerEl);
 
-    render();
+      const sortedEvents = groupEvents.sort((a, b) => a.kind - b.kind);
+      const kindGroups = new Map();
+
+      sortedEvents.forEach(ev => {
+        if (!kindGroups.has(ev.kind)) {
+          kindGroups.set(ev.kind, []);
+        }
+        kindGroups.get(ev.kind).push(ev);
+      });
+
+      const kindOrder = [30023, 30142];
+      kindOrder.forEach(kind => {
+        if (!kindGroups.has(kind)) return;
+
+        const kindEvents = kindGroups.get(kind);
+        const kindHeader = document.createElement("div");
+        kindHeader.className = "kind-header";
+        kindHeader.textContent = `Typ: ${kind}`;
+        groupEl.appendChild(kindHeader);
+
+        kindEvents.forEach(ev => {
+         const title = String(
+           getTag(ev, "title") ||
+           getTag(ev, "name") ||
+           "Ohne Titel"
+            );
+          const summary = getTag(ev, "summary") || ev.content.slice(0, 200);
+          const image = getTag(ev, "image");
+
+          const cardEl = document.createElement("div");
+          cardEl.className = "card";
+
+          cardEl.innerHTML = `
+            <h2>${title}</h2>
+            <div class="meta">
+              <span class="kind">Typ: ${ev.kind}</span> • 
+              Veröffentlicht: ${new Date(ev.created_at * 1000).toLocaleString()}
+            </div>
+            ${image ? `<img src="${image}" alt="Bild">` : ""}
+            <p>${summary}</p>
+            <div style="margin-top: 10px;">
+              <button class="read-more-btn" data-id="${ev.id}">
+                Ganzen Beitrag lesen
+              </button>
+            </div>
+          `;
+
+          // Klick-Event für den Button
+          const readMoreBtn = cardEl.querySelector(".read-more-btn");
+          readMoreBtn.addEventListener("click", () => {
+            openModal(ev);
+          });
+
+          groupEl.appendChild(cardEl);
+        });
+      });
+
+      div.appendChild(groupEl);
+    });
+  }, 100);
+}
+
+function getTag(ev, tagName) {
+  const tag = ev.tags.find(t => t[0] === tagName);
+  return tag ? tag[1] : null;
+}
+
+function toNpub(pubkey) {
+  try {
+    return nip19.npubEncode(pubkey);
+  } catch (e) {
+    return pubkey;
+  }
+}
+
+// === WebSocket-Verbindungen ===
+relays.forEach(url => {
+  const subId = `my-sub-${url}`;
+  const ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    console.log("Verbunden mit Relay:", url);
+    ws.send(JSON.stringify([
+      "REQ",
+      subId,
+      filter
+    ]));
   };
 
-  ws.onerror = err => console.error("WS Fehler:", err);
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data[0] === "EVENT") {
+      const ev = data[2];
+
+      if (![30023, 30142].includes(ev.kind)) return;
+      if (!authorsHex.includes(ev.pubkey)) return;
+      if (seenEvents.has(ev.id)) return;
+      seenEvents.add(ev.id);
+
+      events.push(ev);
+      render();
+    }
+  };
+
+  ws.onclose = () => {
+    console.log("Verbindung zu Relay geschlossen:", url);
+  };
+
+  ws.onerror = (err) => {
+    console.error("WebSocket-Fehler:", url, err);
+  };
 });
 </script>
-
 </body>
 </html>
