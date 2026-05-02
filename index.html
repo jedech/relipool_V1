@@ -448,21 +448,31 @@ relays.forEach(url => {
     ]));
   };
 
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
 
-    if (data[0] === "EVENT") {
-      const ev = data[2];
+  if (data[0] === "EVENT") {
+    const ev = data[2];
 
-      if (![30023, 30142].includes(ev.kind)) return;
-      if (!authorsHex.includes(ev.pubkey)) return;
-      if (seenEvents.has(ev.id)) return;
-      seenEvents.add(ev.id);
+    if (![30023, 30142].includes(ev.kind)) return;
 
-      events.push(ev);
-      render();
+    // ✅ Normalisiere den pubkey: füge npub1 hinzu, wenn fehlt
+    let pubkey = ev.pubkey;
+    if (pubkey.length === 64 && (pubkey.startsWith('1nvw') || pubkey.startsWith('1r30') || pubkey.startsWith('1arw'))) {
+      pubkey = 'npub1' + pubkey;
     }
-  };
+
+    // ✅ Vergleiche mit authorsHex
+    if (!authorsHex.includes(pubkey)) return;
+
+    if (seenEvents.has(ev.id)) return;
+    seenEvents.add(ev.id);
+
+    events.push(ev);
+    render();
+  }
+};
+  
 
   ws.onclose = () => {
     console.log("Verbindung zu Relay geschlossen:", url);
