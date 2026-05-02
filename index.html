@@ -346,6 +346,7 @@ function render() {
     const groupedEvents = new Map();
 
     events.forEach(ev => {
+      // Normalisiere den pubkey: füge npub1 hinzu, wenn fehlt
       let pubkey = ev.pubkey;
       if (pubkey.length === 64 && (pubkey.startsWith('1nvw') || pubkey.startsWith('1r30') || pubkey.startsWith('1arw'))) {
         pubkey = 'npub1' + pubkey;
@@ -432,7 +433,7 @@ function render() {
     });
   }, 100);
 }
-
+  
 // === WebSocket-Verbindungen ===
 relays.forEach(url => {
   const subId = `my-sub-${url}`;
