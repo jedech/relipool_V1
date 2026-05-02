@@ -234,10 +234,13 @@ const events = [];
 // === Hilfsfunktionen ===
 function toHex(npub) {
   try {
-    let normalized = npub;
-    if (npub.length === 64 && (npub.startsWith('1nvw') || npub.startsWith('1r30') || npub.startsWith('1arw'))) {
-      normalized = 'npub1' + npub;
-    }
+    const decoded = nip19.decode(npub);
+    return decoded.data;
+  } catch (e) {
+    console.error("Ungültiger npub:", npub);
+    return null;
+  }
+}
 
     const decoded = nip19.decode(normalized);
     if (decoded.type !== 'npub') {
@@ -448,6 +451,8 @@ relays.forEach(url => {
 
     if (data[0] === "EVENT") {
       const ev = data[2];
+      console.log("EVENT TAGS:", ev.tags);
+      console.log("TITLE TEST:", getTag(ev, "title"), getTag(ev, "name"));
 
       if (![30023, 30142].includes(ev.kind)) return;
       if (!authorsHex.includes(ev.pubkey)) return;
